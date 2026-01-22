@@ -74,11 +74,11 @@ function renderEvents() {
                     <div class="event-desc">${escapeHtml(event.description || '')}</div>
                     <div class="event-meta">
                         <div>
-                            <div class="price-tag">$${event.price.toFixed(2)}</div>
+                            <div class="price-tag">Ksh ${event.price.toFixed(2)}</div>
                             <div class="seats-info">${isSoldOut ? 'Sold Out' : `${event.available_seats} seats left`}</div>
                         </div>
                         <button class="btn btn-primary" onclick="openBookingModal(${event.id})" ${isSoldOut ? 'disabled' : ''}>
-                            ${isSoldOut ? 'Sold Out' : 'Boy Tickets'}
+                            ${isSoldOut ? 'Sold Out' : 'Buy Tickets'}
                         </button>
                     </div>
                 </div>
@@ -121,7 +121,7 @@ function openBookingModal(eventId) {
     document.getElementById('bookingEventId').value = event.id;
     document.getElementById('bookingEventTitle').textContent = event.title;
     document.getElementById('bookingEventDate').textContent = new Date(event.date).toLocaleDateString();
-    document.getElementById('bookingEventPrice').textContent = `$${event.price}/ticket`;
+    document.getElementById('bookingEventPrice').textContent = `${event.price} Ksh/ticket`;
     document.getElementById('quantity').max = event.available_seats;
     document.getElementById('quantity').value = 1;
 
@@ -133,7 +133,7 @@ function updateGrandTotal() {
     if (!currentEventForBooking) return;
     const qty = document.getElementById('quantity').value;
     const total = (qty * currentEventForBooking.price).toFixed(2);
-    document.getElementById('grandTotal').textContent = `$${total}`;
+    document.getElementById('grandTotal').textContent = `${total} Ksh`;
 }
 
 async function handleBookTicket(e) {
