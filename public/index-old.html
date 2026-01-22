@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Tickets - Box Office</title>
+    <title>Event Ticketing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,12 +14,50 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎭 Box Office</h1>
-            <nav class="header-nav">
-                <a href="verify.html" class="nav-link">Staff Verification</a>
-                <a href="admin.html" class="nav-link">Admin</a>
-            </nav>
+            <h1>Box Office</h1>
+            <button id="adminBtn" class="btn btn-secondary">
+                Admin Area
+            </button>
         </header>
+
+        <!-- Admin: Create Event Modal -->
+        <div id="createEventModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Schedule New Event</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label for="title">Event Title</label>
+                        <input type="text" id="title" name="title" placeholder="e.g. Macbeth" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date & Time</label>
+                        <input type="datetime-local" id="date" name="date" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Price (Ksh)</label>
+                            <input type="number" id="price" name="price" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="total_seats">Total Seats</label>
+                            <input type="number" id="total_seats" name="total_seats" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description (Optional)</label>
+                        <textarea id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Publish Event</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-overlay"></div>
+        </div>
 
         <!-- User: Booking Modal -->
         <div id="bookingModal" class="modal hidden">
@@ -91,14 +129,26 @@
                 <p>Book your seats for the season's best performances.</p>
             </div>
 
+            <!-- Verification Section (Staff) -->
+            <div class="verify-section">
+                <h3>🔍 Staff: Verify Ticket</h3>
+                <div class="verify-form">
+                    <input type="text" id="verifyInput" placeholder="Enter ticket code (e.g., TKT-ABC123)" />
+                    <button class="btn btn-secondary" onclick="verifyTicket()">Verify</button>
+                </div>
+                <div id="verifyResult" class="verify-result"></div>
+            </div>
+
             <div id="eventList" class="event-grid">
+
+                <!-- Events injected by JS -->
                 <div class="loading">Loading upcoming events...</div>
             </div>
         </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="user.js"></script>
+    <script src="app.js"></script>
 </body>
 
 </html>

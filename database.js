@@ -31,6 +31,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
             guest_name TEXT NOT NULL,
             quantity INTEGER NOT NULL,
             total_price REAL NOT NULL,
+            ticket_code TEXT UNIQUE,
+            verified INTEGER DEFAULT 0,
             booking_date DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(event_id) REFERENCES events(id)
         )`, (err) => {
