@@ -1,6 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const multer = require('multer');
+const path = require('path');
+
+// Configure Multer Storage
+const storage = multer.diskStorage({
+    destination: './public/uploads/',
+    filename: function (req, file, cb) {
+        cb(null, 'event-' + Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+// Basic Auth Configuration (In a real app, use environment variables and hashing)
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = 'password123';
+let sessions = {}; // Temporary in-memory session store
+
+// Admin Authentication Middleware
+function isAdmin(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && sessions[authHeader]) {
+        next();
+    } else {
+        res.status(401).json({ error: 'Unauthorized access' });
+    }
+}
 
 // Generate unique ticket code
 function generateTicketCode() {
@@ -11,6 +37,18 @@ function generateTicketCode() {
     }
     return code;
 }
+
+// Admin Login Route
+router.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        const token = 'sess_' + Math.random().toString(36).substr(2);
+        sessions[token] = { user: username, expiry: Date.now() + 3600000 };
+        res.json({ message: 'Login successful', token });
+    } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+    }
+});
 
 // GET all events
 router.get('/events', (req, res) => {
@@ -28,8 +66,15 @@ router.get('/events', (req, res) => {
 });
 
 // POST create event (Admin)
-router.post('/events', (req, res) => {
-    const { title, description, date, price, total_seats, imageUrl } = req.body;
+router.post('/events', isAdmin, upload.single('image'), (req, res) => {
+    const { title, description, date, price, total_seats } = req.body;
+    let { imageUrl } = req.body;
+
+    // If file uploaded, use its path
+    if (req.file) {
+        imageUrl = `/uploads/${req.file.filename}`;
+    }
+
     const available_seats = total_seats; // Initial availability
     const sql = `INSERT INTO events (title, description, date, price, total_seats, available_seats, imageUrl) 
                  VALUES (?,?,?,?,?,?,?)`;
@@ -42,13 +87,13 @@ router.post('/events', (req, res) => {
         }
         res.json({
             "message": "success",
-            "data": { id: this.lastID, ...req.body, available_seats }
+            "data": { id: this.lastID, ...req.body, available_seats, imageUrl }
         });
     });
 });
 
-// DELETE event
-router.delete('/events/:id', (req, res) => {
+// DELETE event (Admin)
+router.delete('/events/:id', isAdmin, (req, res) => {
     const sql = 'DELETE FROM events WHERE id = ?';
     const params = [req.params.id];
     db.run(sql, params, function (err, result) {
@@ -61,8 +106,13 @@ router.delete('/events/:id', (req, res) => {
 });
 
 // PUT update event (Admin)
-router.put('/events/:id', (req, res) => {
+router.put('/events/:id', isAdmin, upload.single('image'), (req, res) => {
     const { title, description, date, price, total_seats } = req.body;
+    let { imageUrl } = req.body;
+
+    if (req.file) {
+        imageUrl = `/uploads/${req.file.filename}`;
+    }
 
     // Get current event to calculate available seats adjustment
     db.get("SELECT * FROM events WHERE id = ?", [req.params.id], (err, event) => {
@@ -86,9 +136,10 @@ router.put('/events/:id', (req, res) => {
                      date = COALESCE(?, date),
                      price = COALESCE(?, price),
                      total_seats = COALESCE(?, total_seats),
-                     available_seats = ?
+                     available_seats = ?,
+                     imageUrl = COALESCE(?, imageUrl)
                      WHERE id = ?`;
-        const params = [title, description, date, price, total_seats, newAvailableSeats, req.params.id];
+        const params = [title, description, date, price, total_seats, newAvailableSeats, imageUrl, req.params.id];
 
         db.run(sql, params, function (err) {
             if (err) {
@@ -112,8 +163,8 @@ router.get('/events/:id/bookings', (req, res) => {
     });
 });
 
-// GET dashboard stats
-router.get('/stats', (req, res) => {
+// GET dashboard stats (Admin)
+router.get('/stats', isAdmin, (req, res) => {
     const stats = {};
 
     // Get total revenue
@@ -150,7 +201,7 @@ router.get('/stats', (req, res) => {
 
 // POST Book Ticket
 router.post('/book', (req, res) => {
-    const { event_id, guest_name, quantity } = req.body;
+    const { event_id, guest_name, quantity, email, phone_number } = req.body;
 
     // First check availability
     db.get("SELECT * FROM events WHERE id = ?", [event_id], (err, event) => {
@@ -175,9 +226,9 @@ router.post('/book', (req, res) => {
                 return;
             }
 
-            const insertBooking = `INSERT INTO bookings (event_id, guest_name, quantity, total_price, ticket_code) 
-                                   VALUES (?,?,?,?,?)`;
-            db.run(insertBooking, [event_id, guest_name, quantity, total_price, ticket_code], function (err) {
+            const insertBooking = `INSERT INTO bookings (event_id, guest_name, email, phone_number, quantity, total_price, ticket_code) 
+                                   VALUES (?,?,?,?,?,?,?)`;
+            db.run(insertBooking, [event_id, guest_name, email, phone_number, quantity, total_price, ticket_code], function (err) {
                 if (err) {
                     // Ideally we should rollback the seat update here, but for V1 we'll keep it simple
                     res.status(500).json({ "error": "Booking failed but seats reserved. Contact admin." });
@@ -191,7 +242,9 @@ router.post('/book', (req, res) => {
                         seats: quantity,
                         total: total_price,
                         ticket_code: ticket_code,
-                        guest_name: guest_name
+                        guest_name: guest_name,
+                        email: email,
+                        phone_number: phone_number
                     }
                 });
             });
@@ -241,7 +294,7 @@ router.get('/verify/:code', (req, res) => {
 });
 
 // DELETE Cancel Booking (Admin)
-router.delete('/bookings/:id', (req, res) => {
+router.delete('/bookings/:id', isAdmin, (req, res) => {
     // First get the booking to know how many seats to restore
     db.get("SELECT * FROM bookings WHERE id = ?", [req.params.id], (err, booking) => {
         if (err || !booking) {

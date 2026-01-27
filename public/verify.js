@@ -1,5 +1,10 @@
 const API_URL = '/api';
 
+// Auth Check
+if (!localStorage.getItem('adminToken')) {
+    window.location.href = 'login.html';
+}
+
 let verificationHistory = [];
 
 // Auto-focus input

@@ -14,13 +14,34 @@ let currentEventForBooking = null;
 let currentBookingData = null;
 
 // Initial Load
+// Initial Load
 fetchEvents();
+
+// Search & Filter Elements
+const searchInput = document.getElementById('searchInput');
+const dateFilter = document.getElementById('dateFilter');
 
 // Event Listeners
 closeButtons.forEach(btn => btn.addEventListener('click', closeAllModals));
 overlay.forEach(ov => ov.addEventListener('click', closeAllModals));
 bookingForm.addEventListener('submit', handleBookTicket);
 document.getElementById('quantity').addEventListener('input', updateGrandTotal);
+
+searchInput.addEventListener('input', filterEvents);
+dateFilter.addEventListener('change', filterEvents);
+
+function filterEvents() {
+    const term = searchInput.value.toLowerCase();
+    const dateVal = dateFilter.value;
+
+    const filtered = events.filter(e => {
+        const matchesTerm = e.title.toLowerCase().includes(term) || (e.description && e.description.toLowerCase().includes(term));
+        const matchesDate = dateVal ? e.date.startsWith(dateVal) : true;
+        return matchesTerm && matchesDate;
+    });
+
+    renderEvents(filtered);
+}
 
 // Functions
 function closeAllModals() {
@@ -44,34 +65,30 @@ async function fetchEvents() {
     }
 }
 
-function renderEvents() {
-    if (events.length === 0) {
-        eventList.innerHTML = '<p style="text-align:center; grid-column:1/-1;">No upcoming events scheduled.</p>';
+function renderEvents(eventsToRender = events) {
+    if (eventsToRender.length === 0) {
+        eventList.innerHTML = '<p style="text-align:center; grid-column:1/-1;">No events found matching your criteria.</p>';
         return;
     }
 
-    eventList.innerHTML = events.map(event => {
+    eventList.innerHTML = eventsToRender.map(event => {
         const dateObj = new Date(event.date);
-        const dateStr = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const dateStr = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
         const isSoldOut = event.available_seats <= 0;
 
         return `
             <div class="event-card ${isSoldOut ? 'sold-out' : ''}">
                 <div class="event-image">
                     ${event.imageUrl ? `<img src="${event.imageUrl}" alt="${event.title}">` :
-                `<svg width="40" height="40" fill="none" class="opacity-50" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>`}
+                `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--bg-light);color:var(--text-muted);font-weight:900;">NO IMAGE</div>`}
                 </div>
                 <div class="event-body">
                     <div class="event-date">${dateStr}</div>
                     <div class="event-title">${escapeHtml(event.title)}</div>
-                    <div class="event-desc">${escapeHtml(event.description || '')}</div>
                     <div class="event-meta">
-                        <div>
-                            <div class="price-tag">Ksh ${event.price.toFixed(2)}</div>
-                            <div class="seats-info">${isSoldOut ? 'Sold Out' : `${event.available_seats} seats left`}</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="openBookingModal(${event.id})" ${isSoldOut ? 'disabled' : ''}>
-                            ${isSoldOut ? 'Sold Out' : 'Buy Tickets'}
+                         <button class="btn-book-theatre" onclick="openBookingModal(${event.id})" ${isSoldOut ? 'disabled' : ''}>
+                            <span>${isSoldOut ? 'SOLD OUT' : 'BOOK NOW'}</span>
+                            <span class="price-badge">Ksh ${event.price.toFixed(0)}</span>
                         </button>
                     </div>
                 </div>

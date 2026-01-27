@@ -4,17 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Verification - Staff</title>
+    <title>Verification Portal - Staff</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="container">
         <header>
-            <h1>🔍 Ticket Verification</h1>
+            <h1><span class="brand-box">BOX</span> OFFICE</h1>
             <nav class="header-nav">
                 <a href="index.html" class="nav-link">Customer Portal</a>
                 <a href="admin.html" class="nav-link">Admin</a>
@@ -23,29 +25,32 @@
 
         <main>
             <div class="verify-main">
-                <div class="verify-header">
-                    <h2>Scan or Enter Ticket Code</h2>
-                    <p>Verify customer tickets at the venue entrance</p>
+                <div class="verify-header" style="text-align: center; margin-bottom: 3rem;">
+                    <h2>Gate Verification</h2>
+                    <p style="text-transform: none; color: var(--text-muted); font-weight: 600;">Scan or enter ticket
+                        codes for valid entry.</p>
                 </div>
 
-                <div class="verify-input-section">
-                    <input type="text" id="verifyInput" class="verify-input-large"
-                        placeholder="Enter ticket code (e.g., TKT-ABC123)" autofocus />
-                    <button class="btn btn-primary btn-large" onclick="verifyTicket()">
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Verify Ticket
+                <div class="verify-input-section"
+                    style="border: 3px solid var(--text-main); padding: 2rem; background: white;">
+                    <div class="form-group">
+                        <label for="verifyInput">Ticket Reference Code</label>
+                        <input type="text" id="verifyInput" class="verify-input-large" placeholder="TKT-XXXXXX"
+                            autofocus
+                            style="font-size: 2rem; text-align: center; font-weight: 900; letter-spacing: 0.1em;" />
+                    </div>
+                    <button class="btn btn-primary" onclick="verifyTicket()" style="width: 100%; font-size: 1.25rem;">
+                        Verify Entrance
                     </button>
                 </div>
 
-                <div id="verifyResult" class="verify-result-large"></div>
+                <div id="verifyResult" class="verify-result-large hidden"></div>
 
-                <div class="verify-stats">
-                    <h3>Recent Verifications</h3>
-                    <div id="recentVerifications" class="verification-log">
-                        <p class="empty-state">No verifications yet</p>
+                <div class="verify-stats" style="margin-top: 5rem;">
+                    <h3>Live Access Log</h3>
+                    <div id="recentVerifications" class="verification-log"
+                        style="margin-top: 1.5rem; border: 1px solid var(--border);">
+                        <p class="empty-state">No entries recorded in this session.</p>
                     </div>
                 </div>
             </div>

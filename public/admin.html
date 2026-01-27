@@ -4,20 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Event Management</title>
+    <title>Management Dashboard - Box Office</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="container">
         <header>
-            <h1>⚙️ Admin Dashboard</h1>
+            <h1><span class="brand-box">BOX</span> OFFICE</h1>
             <nav class="header-nav">
                 <a href="index.html" class="nav-link">Customer Portal</a>
                 <a href="verify.html" class="nav-link">Verification</a>
+                <button id="logoutBtn" class="nav-link"
+                    style="background:none; border:none; cursor:pointer; color:inherit; font:inherit; font-weight:700;">Logout</button>
             </nav>
         </header>
 
@@ -25,66 +29,72 @@
             <!-- Stats Dashboard -->
             <div id="statsDashboard" class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">💰</div>
                     <div class="stat-value" id="statRevenue">Ksh 0</div>
                     <div class="stat-label">Total Revenue</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">🎫</div>
                     <div class="stat-value" id="statTodayTickets">0</div>
                     <div class="stat-label">Tickets Today</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">📅</div>
                     <div class="stat-value" id="statEvents">0</div>
                     <div class="stat-label">Total Events</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">🔥</div>
                     <div class="stat-value" id="statPopular">-</div>
                     <div class="stat-label">Most Popular</div>
                 </div>
             </div>
 
             <div class="admin-header">
-                <h2>Event Management</h2>
-                <button class="btn btn-primary" onclick="openCreateModal()">+ Create New Event</button>
+                <div>
+                    <h2>Show Management</h2>
+                    <p style="text-transform: none; color: var(--text-muted); font-weight: 600;">Manage your theatrical
+                        productions and tickets.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openCreateModal()">+ Create New Show</button>
             </div>
 
             <!-- Create/Edit Event Modal -->
             <div id="eventModal" class="modal hidden">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 id="modalTitle">Schedule New Event</h2>
+                        <h2 id="modalTitle">Schedule New Show</h2>
                         <span class="close-modal">&times;</span>
                     </div>
                     <form id="eventForm">
                         <input type="hidden" id="eventId" name="id">
                         <div class="form-group">
-                            <label for="title">Event Title</label>
+                            <label for="title">Show Title</label>
                             <input type="text" id="title" name="title" placeholder="e.g. Macbeth" required>
                         </div>
                         <div class="form-group">
-                            <label for="date">Date & Time</label>
+                            <label for="eventImage">Production Poster (Vertical)</label>
+                            <input type="file" id="eventImage" name="image" accept="image/*">
+                            <small style="display: block; margin-top: 0.5rem; color: var(--text-muted);">Recommended:
+                                2:3 aspect ratio posters.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Performance Date & Time</label>
                             <input type="datetime-local" id="date" name="date" required>
                         </div>
-                        <div class="form-row">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                             <div class="form-group">
-                                <label for="price">Price (Ksh)</label>
-                                <input type="number" id="price" name="price" min="0" step="0.01" required>
+                                <label for="price">Ticket Price (Ksh)</label>
+                                <input type="number" id="price" name="price" min="0" step="1" required>
                             </div>
                             <div class="form-group">
-                                <label for="total_seats">Total Seats</label>
+                                <label for="total_seats">Hall Capacity</label>
                                 <input type="number" id="total_seats" name="total_seats" min="1" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="description">Description (Optional)</label>
+                            <label for="description">Production Details</label>
                             <textarea id="description" name="description" rows="3"></textarea>
                         </div>
                         <div class="modal-actions">
                             <button type="button" class="btn btn-secondary close-modal-btn">Cancel</button>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">Publish Event</button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">Publish Show</button>
                         </div>
                     </form>
                 </div>
@@ -93,12 +103,12 @@
 
             <!-- Bookings Modal -->
             <div id="bookingsModal" class="modal hidden">
-                <div class="modal-content modal-wide">
+                <div class="modal-content" style="max-width: 800px;">
                     <div class="modal-header">
                         <h2>Bookings - <span id="bookingsEventTitle"></span></h2>
                         <span class="close-modal">&times;</span>
                     </div>
-                    <div id="bookingsList" class="bookings-list">
+                    <div id="bookingsList" style="max-height: 400px; overflow-y: auto;">
                         <p class="empty-state">No bookings yet</p>
                     </div>
                     <div class="modal-actions">
@@ -108,21 +118,22 @@
                 <div class="modal-overlay"></div>
             </div>
 
-            <div class="events-table">
-                <table id="eventsTable">
+            <div style="margin-top: 2rem;">
+                <table class="events-table">
                     <thead>
                         <tr>
-                            <th>Event</th>
+                            <th>Show Name</th>
                             <th>Date</th>
+                            <th>Hall Status</th>
                             <th>Price</th>
-                            <th>Seats</th>
-                            <th>Sold</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="eventTableBody">
                         <tr>
-                            <td colspan="6" class="loading">Loading events...</td>
+                            <td colspan="5"
+                                style="text-align: center; padding: 3rem; font-weight: 800; color: var(--text-muted);">
+                                LOADING SHOWS...</td>
                         </tr>
                     </tbody>
                 </table>
